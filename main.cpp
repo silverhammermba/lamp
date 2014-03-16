@@ -71,8 +71,8 @@ int main(int argc, char** argv)
 	}
 
 	// specify non-deprecated OpenGL context
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 4);
-	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 4);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
 	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
 
 	// window dimensions
@@ -146,27 +146,24 @@ int main(int argc, char** argv)
 
 	// PREPARE RENDERING DATA
 
-	SDL_Surface* surf = IMG_Load("storm_eagle.png");
+	SDL_Surface* surf = IMG_Load("storm_eagle_ambient.png");
 	if (surf == nullptr)
 	{
 		cerr << "IMG_Load failed: " << IMG_GetError() << endl;
 		return 1;
 	}
 
-	// pick out sprite in the sheet
-	unsigned int sprite = 0;
-	unsigned int sprites = 6;
+	cerr << "Pixel format: " << surf->format->format << endl;
 
-	// horizontal tex coords for the sprite
-	float u0 = (float)sprite / sprites;
-	float u1 = (float)(sprite + 1) / sprites;
+	float w = (float)surf->w;
+	float h = (float)surf->h;
 
 	float vertices[] =
 	{
-		 0.f,  0.f, u0, 0.f,
-		70.f,  0.f, u1, 0.f,
-		70.f, 84.f, u1, 1.f,
-		 0.f, 84.f, u0, 1.f,
+		0.f, 0.f, 0.f, 0.f,
+		  w, 0.f, 1.f, 0.f,
+		  w,   h, 1.f, 1.f,
+		0.f,   h, 0.f, 1.f,
 	};
 
 	// create vertex array and set active
@@ -186,7 +183,7 @@ int main(int argc, char** argv)
 	GLuint tex;
 	glGenTextures(1, &tex);
 	glBindTexture(GL_TEXTURE_2D, tex);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, 2, 2, 0, GL_RGB, GL_FLOAT, pixels);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, surf->w, surf->h, 0, GL_RGBA, GL_FLOAT, surf->pixels);
 
 	// describe position attributes
 	GLint pos_attrib = glGetAttribLocation(program, "position");
