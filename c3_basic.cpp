@@ -4,7 +4,6 @@
 #include <stdexcept>
 
 #include <GL/glew.h>
-#include <SOIL/SOIL.h>
 #include <SDL2/SDL.h>
 #include <SDL2/SDL_image.h>
 #include <SDL2/SDL_opengl.h>
@@ -156,10 +155,13 @@ int main()
     GLuint tex;
     glGenTextures(1, &tex);
 
-    int width, height;
-    unsigned char* image = SOIL_load_image("cat.jpg", &width, &height, 0, SOIL_LOAD_RGB);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, image);
-    SOIL_free_image_data(image);
+	SDL_Surface* surf = IMG_Load("cat.jpg");
+	if (surf == nullptr)
+	{
+		cerr << "IMG_Load failed: " << IMG_GetError() << endl;
+		return 1;
+	}
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, surf->w, surf->h, 0, GL_RGB, GL_UNSIGNED_BYTE, surf->pixels);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
