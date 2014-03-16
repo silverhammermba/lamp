@@ -3,15 +3,18 @@
 #include <iostream>
 #include <stdexcept>
 
-// Link statically with GLEW
-#define GLEW_STATIC
-
-// Headers
 #include <GL/glew.h>
-#include <SFML/Window.hpp>
 #include <SOIL/SOIL.h>
+#include <SDL2/SDL.h>
+#include <SDL2/SDL_image.h>
+#include <SDL2/SDL_opengl.h>
+#include <glm/glm.hpp>
+#define GLM_FORCE_RADIANS
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 using std::cerr;
+using std::endl;
 
 // read entire contents of file into string
 std::string read_file(const std::string& filename)
@@ -55,8 +58,51 @@ void load_shader(GLuint shader, const std::string& filename)
 
 int main()
 {
-    sf::Window window(sf::VideoMode(800, 600, 32), "OpenGL", sf::Style::Titlebar | sf::Style::Close);
-    
+	// INIT SYSTEMS
+
+	// start SDL
+	SDL_Init(SDL_INIT_VIDEO);
+
+	// start SDL image
+	int img_flags = IMG_INIT_PNG;
+	if (IMG_Init(img_flags) & img_flags != img_flags)
+	{
+		cerr << "IMG_Init failed: " << IMG_GetError() << endl;
+		return 1;
+	}
+
+	// specify non-deprecated OpenGL context
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MAJOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_MINOR_VERSION, 3);
+	SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
+
+	// window dimensions
+	unsigned int win_width = 640;
+	unsigned int win_height = 480;
+
+	// create window
+	SDL_Window* window = SDL_CreateWindow(
+		"Sprite Scene",
+		SDL_WINDOWPOS_UNDEFINED,
+		SDL_WINDOWPOS_UNDEFINED,
+		win_width,
+		win_height,
+		SDL_WINDOW_OPENGL
+	);
+	if (window == nullptr)
+	{
+		cerr << "SDL_CreateWindow failed: " << SDL_GetError() << endl;
+		return 1;
+	}
+
+	// create context
+	SDL_GLContext context = SDL_GL_CreateContext(window);
+	if (context == nullptr)
+	{
+		cerr << "SDL_GL_CreateContext failed: " << SDL_GetError() << endl;
+		return 1;
+	}
+
     // Initialize GLEW
     glewExperimental = GL_TRUE;
     glewInit();
@@ -132,28 +178,27 @@ int main()
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-    while (window.isOpen())
-    {
-        sf::Event windowEvent;
-        while (window.pollEvent(windowEvent))
-        {
-            switch (windowEvent.type)
-            {
-            case sf::Event::Closed:
-                window.close();
-                break;
-            }
-        }
+	// main loop
+	SDL_Event event;
+	bool running = true;
+	while (running)
+	{
+		// event handling
+		while (SDL_PollEvent(&event))
+		{
+			if (event.type == SDL_QUIT)
+				running = false;
+		}
 
         // Clear the screen to black
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
-        
+
         // Draw a rectangle from the 2 triangles using 6 indices
         glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
 
         // Swap buffers
-        window.display();
+		SDL_GL_SwapWindow(window);
     }
 
     glDeleteTextures(1, &tex);
