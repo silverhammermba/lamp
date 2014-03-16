@@ -144,6 +144,12 @@ int main(int argc, char** argv)
 
 	glUseProgram(program);
 
+	// variable positions
+	GLint position_a = glGetAttribLocation(program, "position");
+	GLint tex_coord_a = glGetAttribLocation(program, "tex_coord");
+	GLint time_u = glGetUniformLocation(program, "time");
+	GLint tex_u = glGetUniformLocation(program, "tex");
+
 	// create vertex array and set active
 	GLuint vao;
 	glGenVertexArrays(1, &vao);
@@ -169,12 +175,10 @@ int main(int argc, char** argv)
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
 
 	// describe position attributes
-	GLint position_a = glGetAttribLocation(program, "position");
 	glEnableVertexAttribArray(position_a);
 	glVertexAttribPointer(position_a, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
 
 	// describe texture coordinate attributes
-	GLint tex_coord_a = glGetAttribLocation(program, "tex_coord");
 	glVertexAttribPointer(tex_coord_a, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*)(2 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(tex_coord_a);
 
@@ -193,15 +197,10 @@ int main(int argc, char** argv)
 	// load data
 	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, surf->w, surf->h, 0, GL_RGB, GL_UNSIGNED_BYTE, surf->pixels);
 	// set texture unit 0 in shader
-	glUniform1i(glGetUniformLocation(program, "tex"), 0);
+	glUniform1i(tex_u, 0);
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	// uniforms
-	GLint time_u = glGetUniformLocation(program, "time");
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 	unsigned int last_time = SDL_GetTicks();
 	unsigned int now;
@@ -256,4 +255,3 @@ int main(int argc, char** argv)
 
 	return 0;
 }
-
