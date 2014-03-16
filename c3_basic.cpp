@@ -118,26 +118,14 @@ int main()
 
     GLfloat vertices[] = {
     //  Position      Texcoords
-        -0.5f,  0.5f, 0.0f, 0.0f, // Top-left
-         0.5f,  0.5f, 1.0f, 0.0f, // Top-right
+        -0.5f, -0.5f, 0.0f, 1.0f, // Bottom-left
          0.5f, -0.5f, 1.0f, 1.0f, // Bottom-right
-        -0.5f, -0.5f, 0.0f, 1.0f  // Bottom-left
+         0.5f,  0.5f, 1.0f, 0.0f, // Top-right
+        -0.5f,  0.5f, 0.0f, 0.0f, // Top-left
     };
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
     glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-    // Create an element array
-    GLuint ebo;
-    glGenBuffers(1, &ebo);
-
-    GLuint elements[] = {
-        0, 1, 2,
-        2, 3, 0
-    };
-
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, ebo);
-    glBufferData(GL_ELEMENT_ARRAY_BUFFER, sizeof(elements), elements, GL_STATIC_DRAW);
 
     // Create and compile the vertex shader
     GLuint vertexShader = glCreateShader(GL_VERTEX_SHADER);
@@ -194,8 +182,7 @@ int main()
         glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
         glClear(GL_COLOR_BUFFER_BIT);
 
-        // Draw a rectangle from the 2 triangles using 6 indices
-        glDrawElements(GL_TRIANGLES, 6, GL_UNSIGNED_INT, 0);
+		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
         // Swap buffers
 		SDL_GL_SwapWindow(window);
@@ -207,7 +194,6 @@ int main()
     glDeleteShader(fragmentShader);
     glDeleteShader(vertexShader);
 
-    glDeleteBuffers(1, &ebo);
     glDeleteBuffers(1, &vbo);
 
     glDeleteVertexArrays(1, &vao);
