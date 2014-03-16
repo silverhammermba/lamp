@@ -4,8 +4,8 @@ in vec2 position;
 in vec2 tex_coord;
 
 out vec2 TexCoord;
+out vec2 WorldPos;
 
-// window scale = 2/dimensions
 uniform vec2 window;
 uniform vec2 camera;
 
@@ -17,6 +17,7 @@ void main()
 	view[3] = vec4(-camera * window, 0.0, 1.0);
 
 	TexCoord = tex_coord;
+	WorldPos = position; // for now
 
 	gl_Position = view * vec4(position, 0.0, 1.0);
 }

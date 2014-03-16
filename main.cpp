@@ -149,7 +149,7 @@ int main(int argc, char** argv)
 	GLint tex_coord_a = glGetAttribLocation(program, "tex_coord");
 	GLint window_u = glGetUniformLocation(program, "window");
 	GLint camera_u = glGetUniformLocation(program, "camera");
-	//GLint time_u = glGetUniformLocation(program, "time");
+	GLint time_u = glGetUniformLocation(program, "time");
 	GLint tex_u = glGetUniformLocation(program, "tex");
 
 	// create vertex array and set active
@@ -212,11 +212,12 @@ int main(int argc, char** argv)
 	unsigned int frame_time;
 
 	// precompute scale to get pixel-perfect display
-	GLfloat window_scale[2] = {2.f / width, 2.f / height};
+	float scale = 4.f;
+	GLfloat window_scale[2] = {(2.f * scale) / width, (2.f * scale) / height};
 	glUniform2fv(window_u, 1, window_scale);
 
 	// camera position in pixels
-	GLfloat camera[2] = {10.f, -30.f};
+	GLfloat camera[2] = {22.f, 28.f};
 	glUniform2fv(camera_u, 1, camera);
 
 	// main loop
@@ -229,7 +230,7 @@ int main(int argc, char** argv)
 		frame_time = now - last_time;
 		last_time = now;
 
-		//glUniform1ui(time_u, now);
+		glUniform1ui(time_u, now);
 
 		// event handling
 		while (SDL_PollEvent(&event))
