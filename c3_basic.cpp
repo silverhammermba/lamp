@@ -55,7 +55,7 @@ void load_shader(GLuint shader, const std::string& filename)
 		throw std::runtime_error("Failed to compile shader: " + filename);
 }
 
-int main()
+int main(int argc, char** argv)
 {
 	// INIT SYSTEMS
 
@@ -121,8 +121,8 @@ int main()
     GLuint vbo;
     glGenBuffers(1, &vbo);
 
-    GLfloat vertices[] = {
-    //  Position      Texcoords
+    GLfloat vertices[] =
+	{ // Position     Texcoords
         -0.5f, -0.5f, 0.0f, 1.0f, // Bottom-left
          0.5f, -0.5f, 1.0f, 1.0f, // Bottom-right
          0.5f,  0.5f, 1.0f, 0.0f, // Top-right
@@ -220,4 +220,16 @@ int main()
     glDeleteBuffers(1, &vbo);
 
     glDeleteVertexArrays(1, &vao);
+
+	// clean up
+	SDL_GL_DeleteContext(context);
+	SDL_DestroyWindow(window);
+
+	// stop SDL image
+	IMG_Quit();
+
+	// stop SDL
+	SDL_Quit();
+
+	return 0;
 }
