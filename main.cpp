@@ -147,7 +147,9 @@ int main(int argc, char** argv)
 	// variable positions
 	GLint position_a = glGetAttribLocation(program, "position");
 	GLint tex_coord_a = glGetAttribLocation(program, "tex_coord");
-	GLint time_u = glGetUniformLocation(program, "time");
+	GLint window_u = glGetUniformLocation(program, "window");
+	GLint camera_u = glGetUniformLocation(program, "camera");
+	//GLint time_u = glGetUniformLocation(program, "time");
 	GLint tex_u = glGetUniformLocation(program, "tex");
 
 	// create vertex array and set active
@@ -159,8 +161,15 @@ int main(int argc, char** argv)
 	GLuint vbo;
 	glGenBuffers(1, &vbo);
 
-	GLfloat w = 0.5f;
-	GLfloat h = 0.5f;
+	SDL_Surface* surf = IMG_Load("storm_eagle_ambient.png");
+	if (surf == nullptr)
+	{
+		cerr << "IMG_Load failed: " << IMG_GetError() << endl;
+		return 1;
+	}
+
+	GLfloat w = surf->w;
+	GLfloat h = surf->h;
 
 	GLfloat vertices[] =
 	{
@@ -182,13 +191,6 @@ int main(int argc, char** argv)
 	glVertexAttribPointer(tex_coord_a, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*)(2 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(tex_coord_a);
 
-	SDL_Surface* surf = IMG_Load("storm_eagle_ambient.png");
-	if (surf == nullptr)
-	{
-		cerr << "IMG_Load failed: " << IMG_GetError() << endl;
-		return 1;
-	}
-
 	GLuint tex;
 	glGenTextures(1, &tex);
 	// bind to texture unit 0
@@ -209,6 +211,14 @@ int main(int argc, char** argv)
 	unsigned int now;
 	unsigned int frame_time;
 
+	// precompute scale to get pixel-perfect display
+	GLfloat window_scale[2] = {2.f / width, 2.f / height};
+	glUniform2fv(window_u, 1, window_scale);
+
+	// camera position in pixels
+	GLfloat camera[2] = {10.f, -30.f};
+	glUniform2fv(camera_u, 1, camera);
+
 	// main loop
 	SDL_Event event;
 	bool running = true;
@@ -219,7 +229,7 @@ int main(int argc, char** argv)
 		frame_time = now - last_time;
 		last_time = now;
 
-		glUniform1ui(time_u, now);
+		//glUniform1ui(time_u, now);
 
 		// event handling
 		while (SDL_PollEvent(&event))
