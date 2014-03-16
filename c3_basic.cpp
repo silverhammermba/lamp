@@ -53,29 +53,6 @@ void load_shader(GLuint shader, const std::string& filename)
 		throw std::runtime_error("Failed to compile shader: " + filename);
 }
 
-// Shader sources
-const GLchar* vertexSource =
-    "#version 130\n"
-    "in vec2 position;"
-    "in vec3 color;"
-    "in vec2 texcoord;"
-    "out vec3 Color;"
-    "out vec2 Texcoord;"
-    "void main() {"
-    "   Color = color;"
-    "   Texcoord = texcoord;"
-    "   gl_Position = vec4(position, 0.0, 1.0);"
-    "}";
-const GLchar* fragmentSource =
-    "#version 130\n"
-    "in vec3 Color;"
-    "in vec2 Texcoord;"
-    "out vec4 outColor;"
-    "uniform sampler2D tex;"
-    "void main() {"
-    "   outColor = texture(tex, Texcoord) * vec4(Color, 1.0);"
-    "}";
-
 int main()
 {
     sf::Window window(sf::VideoMode(800, 600, 32), "OpenGL", sf::Style::Titlebar | sf::Style::Close);
@@ -94,11 +71,11 @@ int main()
     glGenBuffers(1, &vbo);
 
     GLfloat vertices[] = {
-    //  Position   Color             Texcoords
-        -0.5f,  0.5f, 1.0f, 0.0f, 0.0f, 0.0f, 0.0f, // Top-left
-         0.5f,  0.5f, 0.0f, 1.0f, 0.0f, 1.0f, 0.0f, // Top-right
-         0.5f, -0.5f, 0.0f, 0.0f, 1.0f, 1.0f, 1.0f, // Bottom-right
-        -0.5f, -0.5f, 1.0f, 1.0f, 1.0f, 0.0f, 1.0f  // Bottom-left
+    //  Position      Texcoords
+        -0.5f,  0.5f, 0.0f, 0.0f, // Top-left
+         0.5f,  0.5f, 1.0f, 0.0f, // Top-right
+         0.5f, -0.5f, 1.0f, 1.0f, // Bottom-right
+        -0.5f, -0.5f, 0.0f, 1.0f  // Bottom-left
     };
 
     glBindBuffer(GL_ARRAY_BUFFER, vbo);
@@ -135,15 +112,11 @@ int main()
     // Specify the layout of the vertex data
     GLint posAttrib = glGetAttribLocation(shaderProgram, "position");
     glEnableVertexAttribArray(posAttrib);
-    glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat), 0);
-
-    GLint colAttrib = glGetAttribLocation(shaderProgram, "color");
-    glEnableVertexAttribArray(colAttrib);
-    glVertexAttribPointer(colAttrib, 3, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat), (void*)(2 * sizeof(GLfloat)));
+    glVertexAttribPointer(posAttrib, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
 
     GLint texAttrib = glGetAttribLocation(shaderProgram, "tex_coord");
     glEnableVertexAttribArray(texAttrib);
-    glVertexAttribPointer(texAttrib, 2, GL_FLOAT, GL_FALSE, 7 * sizeof(GLfloat), (void*)(5 * sizeof(GLfloat)));
+    glVertexAttribPointer(texAttrib, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*)(2 * sizeof(GLfloat)));
 
     // Load texture
     GLuint tex;
