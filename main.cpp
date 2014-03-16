@@ -146,17 +146,41 @@ int main(int argc, char** argv)
 
 	// PREPARE RENDERING DATA
 
-	SDL_Surface* surf = IMG_Load("storm_eagle_ambient.png");
+	SDL_Surface* surf = IMG_Load("cat.jpg");
 	if (surf == nullptr)
 	{
 		cerr << "IMG_Load failed: " << IMG_GetError() << endl;
 		return 1;
 	}
+	/*
+	SDL_Surface* surf = SDL_ConvertSurfaceFormat(temp, SDL_PIXELFORMAT_RGB888, 0);
+	if (surf == nullptr)
+	{
+		cerr << "SDL_ConvertSurfaceFormat failed: " << SDL_GetError() << endl;
+		return 1;
+	}
+	*/
 
-	cerr << "Pixel format: " << surf->format->format << endl;
+	cerr << "Image is " << surf->w << "x" << surf-> h << endl;
+	cerr << "Pixel format: " << SDL_GetPixelFormatName(surf->format->format) << endl;
 
-	float w = (float)surf->w;
-	float h = (float)surf->h;
+	uint8_t* pixels = (uint8_t*)surf->pixels;
+
+	cerr << "First pixel: "
+	     << (unsigned int)pixels[0] << ","
+	     << (unsigned int)pixels[1] << ","
+	     << (unsigned int)pixels[2]
+		 << " second pixel: "
+	     << (unsigned int)pixels[3] << ","
+	     << (unsigned int)pixels[4] << ","
+	     << (unsigned int)pixels[5]
+		 << " last pixel: "
+	     << (unsigned int)pixels[surf->w * surf->h - 3] << ","
+	     << (unsigned int)pixels[surf->w * surf->h - 2] << ","
+	     << (unsigned int)pixels[surf->w * surf->h - 1] << endl;
+
+	float w = 0.5f;//(float)surf->w;
+	float h = 0.5f;//(float)surf->h;
 
 	float vertices[] =
 	{
@@ -182,8 +206,10 @@ int main(int argc, char** argv)
 	// create texture and set active
 	GLuint tex;
 	glGenTextures(1, &tex);
+	glActiveTexture(GL_TEXTURE0); // texture unit 0
 	glBindTexture(GL_TEXTURE_2D, tex);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, surf->w, surf->h, 0, GL_RGBA, GL_FLOAT, surf->pixels);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, surf->w, surf->h, 0, GL_RGB, GL_UNSIGNED_BYTE, surf->pixels);
+	glUniform1i(glGetUniformLocation(program, "tex"), 0); // texture unit 0
 
 	// describe position attributes
 	GLint pos_attrib = glGetAttribLocation(program, "position");
@@ -191,9 +217,9 @@ int main(int argc, char** argv)
 	glEnableVertexAttribArray(pos_attrib);
 
 	// describe texture coordinate attributes
-	GLint nrm_attrib = glGetAttribLocation(program, "tex_coord");
-	glVertexAttribPointer(nrm_attrib, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
-	glEnableVertexAttribArray(nrm_attrib);
+	GLint tex_attrib = glGetAttribLocation(program, "tex_coord");
+	glVertexAttribPointer(tex_attrib, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
+	glEnableVertexAttribArray(tex_attrib);
 
 	// uniforms
 	GLint time_u = glGetUniformLocation(program, "time");
