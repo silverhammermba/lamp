@@ -182,7 +182,7 @@ int main(int argc, char** argv)
 	glVertexAttribPointer(tex_coord_a, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*)(2 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(tex_coord_a);
 
-	SDL_Surface* surf = IMG_Load("cat.jpg");
+	SDL_Surface* surf = IMG_Load("storm_eagle_ambient.png");
 	if (surf == nullptr)
 	{
 		cerr << "IMG_Load failed: " << IMG_GetError() << endl;
@@ -195,12 +195,15 @@ int main(int argc, char** argv)
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, tex);
 	// load data
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, surf->w, surf->h, 0, GL_RGB, GL_UNSIGNED_BYTE, surf->pixels);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surf->w, surf->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, surf->pixels);
 	// set texture unit 0 in shader
 	glUniform1i(tex_u, 0);
 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	unsigned int last_time = SDL_GetTicks();
 	unsigned int now;
