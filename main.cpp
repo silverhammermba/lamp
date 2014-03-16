@@ -144,7 +144,19 @@ int main(int argc, char** argv)
 
 	glUseProgram(program);
 
+	// describe position attributes
+	GLint pos_attrib = glGetAttribLocation(program, "position");
+	glEnableVertexAttribArray(pos_attrib);
+	glVertexAttribPointer(pos_attrib, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), 0);
+
+	// describe texture coordinate attributes
+	GLint tex_attrib = glGetAttribLocation(program, "tex_coord");
+	glVertexAttribPointer(tex_attrib, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*)(2 * sizeof(GLfloat)));
+	glEnableVertexAttribArray(tex_attrib);
+
 	// PREPARE RENDERING DATA
+    GLuint tex;
+    glGenTextures(1, &tex);
 
 	SDL_Surface* surf = IMG_Load("cat.jpg");
 	if (surf == nullptr)
@@ -152,43 +164,12 @@ int main(int argc, char** argv)
 		cerr << "IMG_Load failed: " << IMG_GetError() << endl;
 		return 1;
 	}
-	/*
-	SDL_Surface* surf = SDL_ConvertSurfaceFormat(temp, SDL_PIXELFORMAT_RGB888, 0);
-	if (surf == nullptr)
-	{
-		cerr << "SDL_ConvertSurfaceFormat failed: " << SDL_GetError() << endl;
-		return 1;
-	}
-	*/
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, surf->w, surf->h, 0, GL_RGB, GL_UNSIGNED_BYTE, surf->pixels);
 
-	cerr << "Image is " << surf->w << "x" << surf-> h << endl;
-	cerr << "Pixel format: " << SDL_GetPixelFormatName(surf->format->format) << endl;
-
-	uint8_t* pixels = (uint8_t*)surf->pixels;
-
-	cerr << "First pixel: "
-	     << (unsigned int)pixels[0] << ","
-	     << (unsigned int)pixels[1] << ","
-	     << (unsigned int)pixels[2]
-		 << " second pixel: "
-	     << (unsigned int)pixels[3] << ","
-	     << (unsigned int)pixels[4] << ","
-	     << (unsigned int)pixels[5]
-		 << " last pixel: "
-	     << (unsigned int)pixels[surf->w * surf->h - 3] << ","
-	     << (unsigned int)pixels[surf->w * surf->h - 2] << ","
-	     << (unsigned int)pixels[surf->w * surf->h - 1] << endl;
-
-	float w = 0.5f;//(float)surf->w;
-	float h = 0.5f;//(float)surf->h;
-
-	float vertices[] =
-	{
-		0.f, 0.f, 0.f, 0.f,
-		  w, 0.f, 1.f, 0.f,
-		  w,   h, 1.f, 1.f,
-		0.f,   h, 0.f, 1.f,
-	};
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	// create vertex array and set active
 	GLuint vao;
@@ -198,40 +179,28 @@ int main(int argc, char** argv)
 	// create vertex buffer and set active
 	GLuint vbo;
 	glGenBuffers(1, &vbo);
-	glBindBuffer(GL_ARRAY_BUFFER, vbo);
+
+	GLfloat w = 0.5f;
+	GLfloat h = 0.5f;
+
+	GLfloat vertices[] =
+	{
+		0.f, 0.f, 0.f, 0.f,
+		  w, 0.f, 1.f, 0.f,
+		  w,   h, 1.f, 1.f,
+		0.f,   h, 0.f, 1.f,
+	};
 
 	// load data
+	glBindBuffer(GL_ARRAY_BUFFER, vbo);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertices), vertices, GL_STATIC_DRAW);
-
-	// create texture and set active
-	GLuint tex;
-	glGenTextures(1, &tex);
-	glActiveTexture(GL_TEXTURE0); // texture unit 0
-	glBindTexture(GL_TEXTURE_2D, tex);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, surf->w, surf->h, 0, GL_RGB, GL_UNSIGNED_BYTE, surf->pixels);
-	glUniform1i(glGetUniformLocation(program, "tex"), 0); // texture unit 0
-
-	// describe position attributes
-	GLint pos_attrib = glGetAttribLocation(program, "position");
-	glVertexAttribPointer(pos_attrib, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), 0);
-	glEnableVertexAttribArray(pos_attrib);
-
-	// describe texture coordinate attributes
-	GLint tex_attrib = glGetAttribLocation(program, "tex_coord");
-	glVertexAttribPointer(tex_attrib, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(float), (void*)(2 * sizeof(float)));
-	glEnableVertexAttribArray(tex_attrib);
 
 	// uniforms
 	GLint time_u = glGetUniformLocation(program, "time");
 
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_CULL_FACE);
-
 	unsigned int last_time = SDL_GetTicks();
 	unsigned int now;
 	unsigned int frame_time;
-
-	const Uint8* state = SDL_GetKeyboardState(nullptr);
 
 	// main loop
 	SDL_Event event;
@@ -254,11 +223,21 @@ int main(int argc, char** argv)
 
 		// draw
 		glClearColor(0.2f, 0.2f, 0.2f, 1.f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT);
 		glDrawArrays(GL_TRIANGLE_FAN, 0, 4);
 
 		SDL_GL_SwapWindow(window);
 	}
+
+    glDeleteTextures(1, &tex);
+
+    glDeleteProgram(program);
+    glDeleteShader(fragment_shader);
+    glDeleteShader(vertex_shader);
+
+    glDeleteBuffers(1, &vbo);
+
+    glDeleteVertexArrays(1, &vao);
 
 	// clean up
 	SDL_GL_DeleteContext(context);
