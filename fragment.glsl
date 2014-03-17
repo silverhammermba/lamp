@@ -14,11 +14,15 @@ uniform sampler2D bottom;
 
 void main()
 {
-	vec2 light = vec2(22.5 + sin(time / 2000.0) * 60.0, 28.0 + cos(time / 2000.0) * 60.0);
+	vec2 light = vec2(22.5 + sin(time / 500.0) * 22.5, 28.0 + cos(time / 500.0) * 28.0);
 
-	vec2 light_dir = normalize(light - WorldPos);
-	vec2 normal = normalize(vec2(-2.0 * texture(left, TexCoord).x + 1.0, 2.0 * texture(top, TexCoord).x - 1.0));
-	float lightness = clamp(dot(light_dir, normal), 0.0, 1.0);
+	vec2 light_dir = light - floor(WorldPos) + 0.5;
+	light_dir = light_dir / (abs(light_dir.x) + abs(light_dir.y)); // make components sum to 1
+	float lightness =
+		clamp(light_dir.x, 0.0, 1.0) * texture(right, TexCoord).x +
+		clamp(light_dir.y, 0.0, 1.0) * texture(top, TexCoord).x +
+		clamp(-light_dir.x, 0.0, 1.0) * texture(left, TexCoord).x +
+		clamp(-light_dir.y, 0.0, 1.0) * texture(bottom, TexCoord).x;
 
 	outColor = texture(ambient, TexCoord) * vec4(vec3(lightness), 1.0);
 }
