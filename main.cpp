@@ -55,6 +55,14 @@ void load_shader(GLuint shader, const std::string& filename)
 		throw std::runtime_error("Failed to compile shader: " + filename);
 }
 
+SDL_Surface* load_surface(const std::string& filename)
+{
+	SDL_Surface* surface = IMG_Load(filename.c_str());
+	if (surface == nullptr)
+		throw std::runtime_error("IMG_Load failed: " + std::string(IMG_GetError()));
+	return surface;
+}
+
 int main(int argc, char** argv)
 {
 	// INIT SYSTEMS
@@ -150,7 +158,12 @@ int main(int argc, char** argv)
 	GLint window_u = glGetUniformLocation(program, "window");
 	GLint camera_u = glGetUniformLocation(program, "camera");
 	GLint time_u = glGetUniformLocation(program, "time");
-	GLint tex_u = glGetUniformLocation(program, "tex");
+
+	GLint ambient_u = glGetUniformLocation(program, "ambient");
+	GLint right_u = glGetUniformLocation(program, "right");
+	GLint top_u = glGetUniformLocation(program, "top");
+	GLint left_u = glGetUniformLocation(program, "left");
+	GLint bottom_u = glGetUniformLocation(program, "bottom");
 
 	// create vertex array and set active
 	GLuint vao;
@@ -161,15 +174,14 @@ int main(int argc, char** argv)
 	GLuint vbo;
 	glGenBuffers(1, &vbo);
 
-	SDL_Surface* surf = IMG_Load("storm_eagle_ambient.png");
-	if (surf == nullptr)
-	{
-		cerr << "IMG_Load failed: " << IMG_GetError() << endl;
-		return 1;
-	}
+	SDL_Surface* ambient = load_surface("storm_eagle_ambient.png");
+	SDL_Surface* right = load_surface("storm_eagle_right.png");
+	SDL_Surface* top = load_surface("storm_eagle_top.png");
+	SDL_Surface* left = load_surface("storm_eagle_left.png");
+	SDL_Surface* bottom = load_surface("storm_eagle_bottom.png");
 
-	GLfloat w = surf->w;
-	GLfloat h = surf->h;
+	GLfloat w = ambient->w;
+	GLfloat h = ambient->h;
 
 	GLfloat vertices[] =
 	{
@@ -191,18 +203,44 @@ int main(int argc, char** argv)
 	glVertexAttribPointer(tex_coord_a, 2, GL_FLOAT, GL_FALSE, 4 * sizeof(GLfloat), (void*)(2 * sizeof(GLfloat)));
 	glEnableVertexAttribArray(tex_coord_a);
 
-	GLuint tex;
-	glGenTextures(1, &tex);
-	// bind to texture unit 0
-	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, tex);
-	// load data
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, surf->w, surf->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, surf->pixels);
-	// set texture unit 0 in shader
-	glUniform1i(tex_u, 0);
+	GLuint textures[5];
+	glGenTextures(5, textures);
 
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, textures[0]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, ambient->w, ambient->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, ambient->pixels);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	glActiveTexture(GL_TEXTURE1);
+	glBindTexture(GL_TEXTURE_2D, textures[1]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, right->w, right->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, right->pixels);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	glActiveTexture(GL_TEXTURE2);
+	glBindTexture(GL_TEXTURE_2D, textures[2]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, top->w, top->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, top->pixels);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	glActiveTexture(GL_TEXTURE3);
+	glBindTexture(GL_TEXTURE_2D, textures[3]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, left->w, left->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, left->pixels);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	glActiveTexture(GL_TEXTURE4);
+	glBindTexture(GL_TEXTURE_2D, textures[4]);
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, bottom->w, bottom->h, 0, GL_RGBA, GL_UNSIGNED_BYTE, bottom->pixels);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	glUniform1i(ambient_u, 0);
+	glUniform1i(right_u, 1);
+	glUniform1i(top_u, 2);
+	glUniform1i(left_u, 3);
+	glUniform1i(bottom_u, 4);
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -247,7 +285,7 @@ int main(int argc, char** argv)
 		SDL_GL_SwapWindow(window);
 	}
 
-	glDeleteTextures(1, &tex);
+	glDeleteTextures(5, textures);
 
 	glDeleteProgram(program);
 	glDeleteShader(fragment_shader);
