@@ -14,7 +14,7 @@ uniform sampler2D bottom;
 
 void main()
 {
-	vec2 light = vec2(22.5 + sin(time / 5000.0) * 42.5, 28.0 + cos(time / 5000.0) * 48.0);
+	vec2 light = vec2(22.5 + sin(time / 2000.0) * 42.5, 28.0 + cos(time / 2000.0) * 48.0);
 
 	vec2 light_dir = normalize(light - floor(WorldPos) + 0.5);
 
